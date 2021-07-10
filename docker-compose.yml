@@ -1,0 +1,50 @@
+version: "3"
+services:
+  store-db:
+    image: mysql
+    restart: always
+    container_name: store_database
+    environment:
+      MYSQL_ROOT_PASSWORD: Qazwsxedc1234#
+      MYSQL_DATABASE: store_db
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u root --password=Qazwsxedc1234#
+    volumes:
+      - ./store_schema.sql:/docker-entrypoint-initdb.d/store_schema.sql:ro
+  catalog-service:
+    container_name: catalog-service
+    build: ./catalog-service
+    ports:
+      - "8080:8080"
+    depends_on: 
+      store-db:
+        condition: service_healthy
+    tty: true
+    environment:
+        - DATABASE_URL=root:Qazwsxedc1234#@tcp(store-db)/store_db
+        - DATABASE_NAME=store_db
+  cart-service:
+    container_name: cart
+    build: ./cart-service
+    ports:
+      - "8081:8081"
+    depends_on: 
+      store-db:
+        condition: service_healthy
+    tty: true
+    environment:
+        - DATABASE_URL=root:Qazwsxedc1234#@tcp(store-db)/store_db
+        - DATABASE_NAME=store_db
+  order-service:
+    container_name: order
+    build: ./order-service
+    ports:
+      - "8082:8082"
+    depends_on: 
+      store-db:
+        condition: service_healthy
+    tty: true
+    environment:
+        - DATABASE_URL=root:Qazwsxedc1234#@tcp(store-db)/store_db
+        - DATABASE_NAME=store_db
+      
